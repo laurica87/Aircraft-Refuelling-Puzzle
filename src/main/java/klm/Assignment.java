@@ -3,7 +3,7 @@ package klm;
 public class Assignment {
 
     public static void main (String[] args) {
-        char[][] board = {
+        char[][] airport = {
                 {'.', '.', 'p', '.', '.', '.', '.'},
                 {'p', '.', '.', '.', 'p', '.', 'p'},
                 {'.', '.', '.', '.', '.', '.', 'p'},
@@ -21,39 +21,47 @@ public class Assignment {
 
         int[][] planes = {{0,2}, {1,0}, {1, 4}, {1, 6}, {2, 6}, {4,1}, {5, 3}, {6,0}, {6,6}};
 
-        boolean solve = solvePuzzle(board, planes, straightDirections, diagonalDirections, trucksPerRow, trucksPerCol, 0);
+        boolean solve = solvePuzzle(airport, planes, straightDirections, diagonalDirections, trucksPerRow, trucksPerCol, 0);
 
         System.out.println(solve);
 
-        for (int i = 0; i < board.length; i++) {
+        for (int i = 0; i < airport.length; i++) {
             System.out.print("{");
-            for (int j = 0; j < board[0].length; j++) {
-                System.out.print(board[i][j] + " ");
+            for (int j = 0; j < airport[0].length; j++) {
+                System.out.print(airport[i][j] + " ");
             }
             System.out.println("}");
         }
     }
 
-    public static boolean solvePuzzle(char[][] board, int[][] planes, int[][] straightDirections, int[][] diagonalDirections, int[] trucksPerRow, int[] trucksPerColumn, int planeIndex) {
+    public static boolean solvePuzzle(char[][] airport, int[][] planes, int[][] straightDirections, int[][] diagonalDirections, int[] trucksPerRow, int[] trucksPerColumn, int planeIndex) {
         if (planeIndex == planes.length) {
+            //we places all the trucks, and solved the puzzle
             return true;
         }
+        //get the current plane
         int[] airplane = planes[planeIndex];
         int airplanePositionRow = airplane[0];
         int airplanePositionCol = airplane[1];
 
+        // check if we can place a truck in any direct direction of the plane
         for (int i = 0; i < straightDirections.length; i++) {
             int possibleTruckPositionRow = airplanePositionRow + straightDirections[i][0];
             int possibleTruckPositionCol = airplanePositionCol + straightDirections[i][1];
-            if (isLegalPosition(possibleTruckPositionRow, possibleTruckPositionCol, board)) {
-                if (isTruckPositionPossible(possibleTruckPositionRow, possibleTruckPositionCol, board, diagonalDirections, trucksPerRow, trucksPerColumn)) {
-                    board[possibleTruckPositionRow][possibleTruckPositionCol] = 't';
+            //check first if the position is valid (inside the airport)
+            if (isLegalPosition(possibleTruckPositionRow, possibleTruckPositionCol, airport)) {
+                //check if the truck can placed in that position
+                if (isTruckPositionPossible(possibleTruckPositionRow, possibleTruckPositionCol, airport, diagonalDirections, trucksPerRow, trucksPerColumn)) {
+                    //update the truck position and decrement the nr of trucks per row and column at that position
+                    airport[possibleTruckPositionRow][possibleTruckPositionCol] = 't';
                     trucksPerRow[possibleTruckPositionRow] -= 1;
                     trucksPerColumn[possibleTruckPositionCol] -= 1;
-                    if (solvePuzzle(board, planes, straightDirections, diagonalDirections, trucksPerRow, trucksPerColumn, planeIndex + 1)) {
+                    //do the same for the next plane
+                    if (solvePuzzle(airport, planes, straightDirections, diagonalDirections, trucksPerRow, trucksPerColumn, planeIndex + 1)) {
                         return true;
                     } else {
-                        board[possibleTruckPositionRow][possibleTruckPositionCol] = '.';
+                        //dead end. the truck cannot be place. remove the truck and relax the truck numbers per row and column
+                        airport[possibleTruckPositionRow][possibleTruckPositionCol] = '.';
                         trucksPerRow[possibleTruckPositionRow] += 1;
                         trucksPerColumn[possibleTruckPositionCol] += 1;
                     }
